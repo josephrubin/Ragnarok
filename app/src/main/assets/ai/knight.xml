@@ -1,0 +1,40 @@
+<AI>
+    <!-- Behavior definitions - it is recommended to define them all in one place. -->
+    <behavior starting="true"
+        name="Chase"
+        class="box.gift.ragnarok.myai.behavior.Chase" />
+    <behavior
+        name="Idle"
+        class="box.gift.ragnarok.myai.behavior.Idle" />
+    <behavior
+        name="Charge"
+        class="box.gift.ragnarok.myai.behavior.Charge" />
+
+    <condition
+        name="WaitShort"
+        class="box.gift.ragnarok.myai.condition.WaitShort" />
+
+    <condition
+        name="Close"
+        class="box.gift.ragnarok.myai.condition.Close" />
+
+
+    <clause>
+        <premise behavior="Chase" />
+        <predicate condition="Close" result="swap">
+            <outcome behavior="Idle" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="Idle" />
+        <predicate condition="WaitShort" result="swap">
+            <outcome behavior="Charge" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="Charge" />
+        <predicate condition="WaitShort" result="swap">
+            <outcome behavior="Chase" />
+        </predicate>
+    </clause>
+</AI>

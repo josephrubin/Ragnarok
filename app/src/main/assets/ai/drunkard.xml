@@ -1,0 +1,37 @@
+<AI>
+    <behavior starting="true"
+              name="Idle"
+              class="box.gift.ragnarok.myai.behavior.Idle" />
+    <behavior
+        name="Drunk"
+        class="box.gift.ragnarok.myai.behavior.Drunk" />
+
+    <condition
+        name="WaitMedium"
+        class="box.gift.ragnarok.myai.condition.WaitMedium" />
+
+    <condition
+        name="WaitVeryLong"
+        class="box.gift.ragnarok.myai.condition.WaitVeryLong" />
+
+    <clause>
+        <premise behavior="Idle" />
+        <predicate condition="WaitMedium" result="swap">
+            <outcome behavior="Drunk" />
+        </predicate>
+    </clause>
+
+    <clause>
+        <premise behavior="Drunk" />
+        <predicate condition="WaitVeryLong" result="swap">
+            <outcome behavior="Idle" />
+        </predicate>
+    </clause>
+
+    <clause>
+        <premise behavior="Charge" />
+        <predicate condition="WaitShort" result="swap">
+            <outcome behavior="Circle" />
+        </predicate>
+    </clause>
+</AI>

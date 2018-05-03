@@ -1,0 +1,28 @@
+<AI>
+    <behavior starting="true"
+              name="Chase"
+              class="box.gift.ragnarok.myai.behavior.Chase" />
+    <behavior
+        name="Run"
+        class="box.gift.ragnarok.myai.behavior.Run" />
+
+    <condition
+        name="Close"
+        class="box.gift.ragnarok.myai.condition.Close" />
+    <condition
+        name="Time"
+        class="box.gift.ragnarok.myai.condition.WaitLong" />
+
+    <clause>
+        <premise behavior="Chase" />
+        <predicate condition="Close" result="push">
+            <outcome behavior="Run" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="Run" />
+        <predicate condition="Time" result="push">
+            <outcome behavior="Chase" />
+        </predicate>
+    </clause>
+</AI>

@@ -1,0 +1,40 @@
+<AI>
+    <behavior starting="true"
+              name="Circle"
+              class="box.gift.ragnarok.myai.behavior.Circle" />
+    <behavior
+        name="Idle"
+        class="box.gift.ragnarok.myai.behavior.Idle" />
+    <behavior
+        name="Charge"
+        class="box.gift.ragnarok.myai.behavior.Charge" />
+
+    <condition
+        name="WaitMedium"
+        class="box.gift.ragnarok.myai.condition.WaitMedium" />
+
+    <condition
+        name="WaitShort"
+        class="box.gift.ragnarok.myai.condition.WaitShort" />
+
+    <clause>
+        <premise behavior="Circle" />
+        <predicate condition="WaitMedium" result="swap">
+            <outcome behavior="Idle" />
+        </predicate>
+    </clause>
+
+    <clause>
+        <premise behavior="Idle" />
+        <predicate condition="WaitMedium" result="swap">
+            <outcome behavior="Charge" />
+        </predicate>
+    </clause>
+
+    <clause>
+        <premise behavior="Charge" />
+        <predicate condition="WaitShort" result="swap">
+            <outcome behavior="Circle" />
+        </predicate>
+    </clause>
+</AI>

@@ -1,0 +1,54 @@
+<AI>
+    <!-- Behavior definitions - it is recommended to define them all in one place. -->
+    <behavior starting="true"
+              name="Chase"
+              class="box.gift.ragnarok.myai.behavior.Chase" />
+    <behavior
+        name="AttackOffense"
+        class="box.gift.ragnarok.myai.behavior.AttackOffense" />
+    <behavior
+        name="Idle"
+        class="box.gift.ragnarok.myai.behavior.Idle" />
+    <behavior
+        name="Circle"
+        class="box.gift.ragnarok.myai.behavior.Circle" />
+
+    <condition
+        name="WaitShort"
+        class="box.gift.ragnarok.myai.condition.WaitShort" />
+    <condition
+        name="WaitVeryShort"
+        class="box.gift.ragnarok.myai.condition.WaitVeryShort" />
+    <condition
+        name="Immediate"
+        class="box.gift.ragnarok.myai.condition.Immediate" />
+    <condition
+        name="Close"
+        class="box.gift.ragnarok.myai.condition.Close" />
+
+
+    <clause>
+        <premise behavior="Chase" />
+        <predicate condition="Close" result="swap">
+            <outcome behavior="AttackOffense" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="AttackOffense" />
+        <predicate condition="Immediate" result="swap">
+            <outcome behavior="Idle" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="Idle" />
+        <predicate condition="WaitVeryShort" result="swap">
+            <outcome behavior="Circle" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="Circle" />
+        <predicate condition="WaitShort" result="swap">
+            <outcome behavior="Chase" />
+        </predicate>
+    </clause>
+</AI>
