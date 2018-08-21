@@ -1,6 +1,6 @@
 package box.gift.ragnarok.combat.weapon;
 
-public abstract class RangeWeapon extends Weapon
+public abstract class RangeWeapon extends AbstractWeapon
 {
     public RangeWeapon(int cooldown)
     {

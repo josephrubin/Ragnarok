@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import box.gift.ragnarok.combat.hitbox.AbstractHitbox;
 import box.gift.ragnarok.constant.DamageConstant;
 import box.gift.ragnarok.constant.ForceConstant;
 import box.gift.ragnarok.constant.LevelSources;
@@ -30,8 +31,8 @@ import box.gift.ragnarok.entity.enemy.Charger;
 import box.gift.ragnarok.entity.enemy.Drunkard;
 import box.gift.ragnarok.entity.enemy.Enemy;
 import box.gift.ragnarok.entity.enemy.Rat;
-import box.gift.ragnarok.combat.hitbox.Hitbox;
 import box.gift.ragnarok.interact.Conveyor;
+import box.gift.ragnarok.interact.Gunner;
 import box.gift.ragnarok.interact.Ice;
 import box.gift.ragnarok.interact.Shooter;
 import box.shoe.gameutils.BoundingBox;
@@ -45,7 +46,6 @@ import box.gift.ragnarok.interact.InteractTile;
 import box.gift.ragnarok.interact.Poison;
 import box.gift.ragnarok.interact.Spike;
 import box.gift.ragnarok.interact.Spring;
-import box.gift.ragnarok.combat.attack.Attack;
 import box.shoe.gameutils.CollectionUtils;
 import box.shoe.gameutils.Vector;
 import box.shoe.gameutils.camera.Camera;
@@ -249,32 +249,22 @@ public class Ragnarok implements Game
         CollectionUtils.updateAll(interactTiles);
 
         // Collect Hitboxes.
-        Collection<Hitbox> hitboxes = new LinkedList<>();
+        Collection<AbstractHitbox> hitboxes = new LinkedList<>();
         for (Character character : characters)
         {
-            // Each Character can have Attacks.
-            Collection<Attack> attacks = character.getAttacks();
-            for (Attack attack : attacks)
-            {
-                // Each Attack can have Hitboxes.
-                hitboxes.addAll(attack.getHitboxes());
-            }
+            // Each Character can have Hitboxes.
+            hitboxes.addAll(character.getHitboxes());
         }
         for (InteractTile interactTile : interactTiles)
         {
-            // Each InteractTile can have Attacks.
-            Collection<Attack> attacks = interactTile.getAttacks();
-            for (Attack attack : attacks)
-            {
-                // Each Attack can have Hitboxes.
-                hitboxes.addAll(attack.getHitboxes());
-            }
+            // Each InteractTile can have Hitboxes.
+            hitboxes.addAll(interactTile.getHitboxes());
         }
 
         // Call Hitbox onCharacter(Character).
         for (Character character : characters)
         {
-            for (Hitbox hitbox : hitboxes)
+            for (AbstractHitbox hitbox : hitboxes)
             {
                 if (character.body.intersects(hitbox.body))
                 {
@@ -548,6 +538,10 @@ public class Ragnarok implements Game
 
                     case 5:
                         interactTiles.add(new Ice(tileBounds)); //TODO: ice effect doesnt do anything yet
+                        break;
+
+                    case 7:
+                        interactTiles.add(new Gunner(tileBounds));
                         break;
 
                     case 8:

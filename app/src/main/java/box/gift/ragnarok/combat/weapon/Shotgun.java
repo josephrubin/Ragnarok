@@ -1,8 +1,11 @@
 package box.gift.ragnarok.combat.weapon;
 
+import java.util.Collection;
+
 import box.gift.ragnarok.StatusEffect;
 import box.gift.ragnarok.Team;
 import box.gift.ragnarok.combat.attack.Attack;
+import box.gift.ragnarok.combat.hitbox.AbstractHitbox;
 import box.gift.ragnarok.combat.hitbox.RangeHitbox;
 import box.gift.ragnarok.constant.DamageConstant;
 import box.gift.ragnarok.constant.DurationConstant;
@@ -10,7 +13,7 @@ import box.gift.ragnarok.constant.ForceConstant;
 import box.gift.ragnarok.constant.SpeedConstant;
 import box.gift.ragnarok.constant.SpreadConstant;
 import box.gift.ragnarok.constant.StunDuration;
-import box.gift.ragnarok.combat.hitbox.Hitbox;
+import box.gift.ragnarok.combat.hitbox.OldHitbox;
 import box.gift.ragnarok.entity.Character;
 import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
@@ -23,16 +26,16 @@ public class Shotgun extends RangeWeapon
     }
 
     @Override
-    protected void attack(Character sourceCharacter, Direction direction)
+    protected Collection<AbstractHitbox> attack(Character sourceCharacter, Direction direction)
     {
         Attack shot = new Attack();
 
         BoundingBox bulletBox = BoundingBox.fromCenter(sourceCharacter.body.centerX(), sourceCharacter.body.centerY(), 10);
-        Hitbox bullet1 = new ShotgunBulletHitbox(bulletBox, sourceCharacter.TEAM);
+        OldHitbox bullet1 = new ShotgunBulletHitbox(bulletBox, sourceCharacter.TEAM);
         bulletBox = new BoundingBox(bulletBox);
-        Hitbox bullet2 = new ShotgunBulletHitbox(bulletBox, sourceCharacter.TEAM);
+        OldHitbox bullet2 = new ShotgunBulletHitbox(bulletBox, sourceCharacter.TEAM);
         bulletBox = new BoundingBox(bulletBox);
-        Hitbox bullet3 = new ShotgunBulletHitbox(bulletBox, sourceCharacter.TEAM);
+        OldHitbox bullet3 = new ShotgunBulletHitbox(bulletBox, sourceCharacter.TEAM);
 
         bullet1.velocity = direction.VECTOR.scale(SpeedConstant.SHOTGUN_BULLET);
         bullet2.velocity = direction.VECTOR.scale(SpeedConstant.SHOTGUN_BULLET).rotateBy(Math.toRadians(SpreadConstant.SHOTGUN_DEGREES));

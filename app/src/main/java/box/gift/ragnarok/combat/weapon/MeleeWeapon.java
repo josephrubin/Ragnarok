@@ -3,40 +3,29 @@ package box.gift.ragnarok.combat.weapon;
 import android.support.annotation.RestrictTo;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-import box.gift.ragnarok.Team;
-import box.gift.ragnarok.combat.attack.Attack;
-import box.gift.ragnarok.combat.hitbox.Hitbox;
+import box.gift.ragnarok.combat.hitbox.AbstractDamagingHitbox;
+import box.gift.ragnarok.combat.hitbox.AbstractHitbox;
 import box.gift.ragnarok.combat.hitbox.MeleeHitbox;
 import box.gift.ragnarok.entity.Character;
 import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
 
-public abstract class MeleeWeapon extends Weapon
+public abstract class MeleeWeapon extends AbstractWeapon
 {
-    private float range;
-
-    public MeleeWeapon(int cooldown, int range)
+    public MeleeWeapon(int cooldown)
     {
         super(cooldown);
-        this.range = range;
-    }
-
-    @Override
-    public float getComfortableAttackDistance()
-    {
-        return range;
     }
 
     @RestrictTo(RestrictTo.Scope.SUBCLASSES)
-    protected Attack createArcingAttack(Character sourceCharacter, Direction direction, int damage, int durationUpdates)
+    protected Collection<AbstractHitbox> createArcingAttack(Character sourceCharacter, Direction direction, int damage, int durationUpdates, float arcRadius)
     {
         float xPos = sourceCharacter.body.centerX();
         float yPos = sourceCharacter.body.centerY();
 
-        Attack arcingAttack = new Attack();
-        float arcRadius = getComfortableAttackDistance();
+        Collection<AbstractHitbox> arcingAttack = new ArrayList<>();
         float trianglePartDistance = (float) (arcRadius * Math.cos(Math.PI / 4));
 
         final float sliceWidth = 2;
@@ -63,9 +52,9 @@ public abstract class MeleeWeapon extends Weapon
             float bottom = yPos + y;
             float top = yPos - y;
 
-            Hitbox hitbox = new MeleeHitbox(new BoundingBox(left, top, right, bottom), sourceCharacter, damage);
+            AbstractDamagingHitbox hitbox = new MeleeHitbox(new BoundingBox(left, top, right, bottom), sourceCharacter, damage);
             hitbox.body.rotate(Direction.EAST, direction, xPos, yPos);
-            arcingAttack.addHitbox(hitbox);
+            arcingAttack.add(hitbox);
         }
 
         return arcingAttack;

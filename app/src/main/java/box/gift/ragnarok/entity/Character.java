@@ -4,7 +4,6 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.support.annotation.CallSuper;
 import android.support.annotation.RestrictTo;
 
@@ -18,11 +17,11 @@ import java.util.Map;
 import box.gift.ragnarok.Afflictable;
 import box.gift.ragnarok.StatusEffect;
 import box.gift.ragnarok.Team;
+import box.gift.ragnarok.combat.hitbox.TemporaryHitbox;
+import box.gift.ragnarok.combat.weapon.AbstractWeapon;
 import box.gift.ragnarok.constant.StatisticDefaultConstant;
-import box.gift.ragnarok.combat.weapon.Weapon;
 import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
-import box.gift.ragnarok.combat.attack.Attack;
 import box.shoe.gameutils.Entity;
 import box.shoe.gameutils.Renderable;
 import box.shoe.gameutils.Vector;
@@ -37,25 +36,28 @@ public abstract class Character extends CollisionEntity implements Renderable
 
     // _______
     // COMBAT.
+
     private int invincibilityUpdates = StatisticDefaultConstant.INVINCIBILITY_UPDATES;
     private int currentInvincibilityUpdate = invincibilityUpdates;
 
     protected int health;
 
-    private Weapon wieldingOffense; //todo: methods to wield weapons.
-    private Weapon wieldingDefense; //todo: Attacker and Blocker instead of Weapon?
+    private AbstractWeapon wieldingOffense; //todo: methods to wield weapons.
+    private AbstractWeapon wieldingDefense; //todo: Attacker and Blocker instead of Weapon?
 
-    private List<Attack> combinedWeaponAttacks;
+    private List<TemporaryHitbox> temporaryHitboxes;
 
     public final Team.AssignableTeam TEAM;
 
     // ________
     // EFFECTS.
+
     private Collection<Afflictable> afflictables;
     private Map<StatusEffect, Integer> statusEffects;
 
     // _______
     // STATUS.
+
     public Direction facing;
     private float sightRange;
 
@@ -71,7 +73,7 @@ public abstract class Character extends CollisionEntity implements Renderable
 
         afflictables = new LinkedList<>(); //todo: should be a set, allowing each type to be applied only once?
         statusEffects = new HashMap<>();
-        combinedWeaponAttacks = new LinkedList<>();
+        temporaryHitboxes = new LinkedList<>();
 
         // Arbitrary decision to make characters face south by default.
         //todo: make into DefaultConstant ?
@@ -84,7 +86,7 @@ public abstract class Character extends CollisionEntity implements Renderable
         //INTERPOLATABLE_SERVICE.addMember(this); //todo: remove member upon death.
     }
 
-    public void wieldOffense(Weapon weapon)
+    public void wieldOffense(AbstractWeapon weapon)
     {
         wieldingOffense = weapon;
     }
@@ -95,9 +97,10 @@ public abstract class Character extends CollisionEntity implements Renderable
     }
 
     @RestrictTo(RestrictTo.Scope.SUBCLASSES)
-    protected boolean requestAttackOffense()
+    protected void requestAttackOffense()
     {
-        return wieldingOffense.requestAttack(this, facing);
+        Collection<TemporaryHitbox> additionalTemporaryHitboxes = wieldingOffense.requestAttack(this, facing);
+        temporaryHitboxes.addAll(additionalTemporaryHitboxes);
     }
 
     public void moveAlongVector(Vector vector)
@@ -133,7 +136,9 @@ public abstract class Character extends CollisionEntity implements Renderable
     {
         if (!isInvincible() && TEAM != sourceTeam)
         {
+            // Actually take the damage.
             health -= damageAmount;
+            // Health cannot be negative.
             if (health < 0)
             {
                 health = 0;
@@ -194,16 +199,9 @@ public abstract class Character extends CollisionEntity implements Renderable
     }
 
     @CallSuper
-    public Collection<Attack> getAttacks()
+    public Collection<TemporaryHitbox> getHitboxes()
     {
-        combinedWeaponAttacks.clear();
-        //todo: we cold store the attacks and only update the list on thi method call when something changes (dirty boolean flag)
-        // If we are wielding any offensive weapons add its attacks.
-        if (wieldingOffense != null)
-        {
-            combinedWeaponAttacks.addAll(wieldingOffense.getAttacks());
-        }
-        return combinedWeaponAttacks;
+        return temporaryHitboxes;
     }
 
     @Override
@@ -211,10 +209,17 @@ public abstract class Character extends CollisionEntity implements Renderable
     {
         super.update();
 
-        // Update weapons if wielding any. //fixme: should update any weapons that aren't wielded also in case they have active attacks.
-        if (wieldingOffense != null)
+        // Update all temporary hitboxes and remove the finished ones.
+        Iterator<TemporaryHitbox> iterator = getHitboxes().iterator();
+        while (iterator.hasNext())
         {
-            wieldingOffense.update();
+            TemporaryHitbox hitbox = iterator.next();
+            // Remove finished Hitboxes.
+            if (hitbox.isFinished())
+            {
+                iterator.remove();
+            }
+            hitbox.update();
         }
 
         // Afflict this Character.
@@ -274,13 +279,10 @@ public abstract class Character extends CollisionEntity implements Renderable
         }
         canvas.drawRect(display, defaultPaint);
 
-        // Render attacks.
-        for (Attack attack : getAttacks())
+        // Render hitboxes.
+        for (AbstractHitbox hitbox : getHitboxes())
         {
-            if (attack != null)
-            {
-                attack.render(resources, canvas);
-            }
+            hitbox.render(resources, canvas);
         }
 
         // Facing direction.
