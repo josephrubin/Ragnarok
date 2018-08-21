@@ -17,11 +17,12 @@ import java.util.Map;
 
 import box.gift.ragnarok.Afflictable;
 import box.gift.ragnarok.StatusEffect;
+import box.gift.ragnarok.Team;
 import box.gift.ragnarok.constant.StatisticDefaultConstant;
 import box.gift.ragnarok.combat.weapon.Weapon;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
-import box.gift.ragnarok.combat.weapon.Attack;
+import box.gift.ragnarok.combat.attack.Attack;
 import box.shoe.gameutils.Entity;
 import box.shoe.gameutils.Renderable;
 import box.shoe.gameutils.Vector;
@@ -46,6 +47,8 @@ public abstract class Character extends CollisionEntity implements Renderable
 
     private List<Attack> combinedWeaponAttacks;
 
+    public final Team.AssignableTeam TEAM;
+
     // ________
     // EFFECTS.
     private Collection<Afflictable> afflictables;
@@ -60,25 +63,18 @@ public abstract class Character extends CollisionEntity implements Renderable
 
     //TODO: invince should work as follows: until invince updates run out, any source of damage is reduced by amount already taken (min 0).
 
-    public Character(AABB body)
+    public Character(BoundingBox body, Team.AssignableTeam team)
     {
-        this(body, Vector.ZERO, Vector.ZERO);
-    }
+        super(body);
 
-    public Character(AABB body, Vector initialVelocity)
-    {
-        this(body, initialVelocity, Vector.ZERO);
-    }
-
-    public Character(AABB body, Vector initialVelocity, Vector initialAcceleration)
-    {
-        super(body, initialVelocity, initialAcceleration);
+        this.TEAM = team;
 
         afflictables = new LinkedList<>(); //todo: should be a set, allowing each type to be applied only once?
         statusEffects = new HashMap<>();
         combinedWeaponAttacks = new LinkedList<>();
 
         // Arbitrary decision to make characters face south by default.
+        //todo: make into DefaultConstant ?
         facing = Direction.SOUTH;
 
         this.health = StatisticDefaultConstant.CHARACTER_HEALTH;
@@ -91,6 +87,11 @@ public abstract class Character extends CollisionEntity implements Renderable
     public void wieldOffense(Weapon weapon)
     {
         wieldingOffense = weapon;
+    }
+
+    public float getComfortableAttackDistance()
+    {
+        return wieldingOffense.getComfortableAttackDistance();
     }
 
     @RestrictTo(RestrictTo.Scope.SUBCLASSES)
@@ -120,24 +121,7 @@ public abstract class Character extends CollisionEntity implements Renderable
 
     public boolean seesEntity(Entity entity)
     {
-        RectF sightRectF;
-        if (facing.equals(Direction.EAST))
-        {
-            sightRectF = new RectF(body.left, body.top, body.centerX() + sightRange, body.bottom);
-        }
-        else if (facing.equals(Direction.WEST))
-        {
-            sightRectF = new RectF(body.centerX() - sightRange, body.top, body.right, body.bottom);
-        }
-        else if (facing.equals(Direction.NORTH))
-        {
-            sightRectF = new RectF(body.left, body.centerY() - sightRange, body.right, body.bottom);
-        }
-        else
-        {
-            sightRectF = new RectF(body.left, body.centerY() + sightRange, body.right, body.bottom);
-        }
-        return entity.body.intersects(sightRectF);
+        return false;
     }
 
     /**
@@ -145,9 +129,9 @@ public abstract class Character extends CollisionEntity implements Renderable
      * @param damageAmount the amount of damage the Character should take.
      * @return true if the Character took any damage, and false otherwise.
      */
-    public boolean requestDamage(int damageAmount)
+    public boolean requestDamage(int damageAmount, Team sourceTeam)
     {
-        if (!isInvincible())
+        if (!isInvincible() && TEAM != sourceTeam)
         {
             health -= damageAmount;
             if (health < 0)
@@ -160,7 +144,7 @@ public abstract class Character extends CollisionEntity implements Renderable
         return false;
     }
 
-    public int getHealth()
+    public int getCurrentHealth()
     {
         return health;
     }
@@ -282,7 +266,7 @@ public abstract class Character extends CollisionEntity implements Renderable
     @Override
     public void render(Resources resources, Canvas canvas)
     {
-        // Body.
+        // Render body.
         defaultPaint.setColor(Color.BLACK);
         if (isInvincible())
         {
@@ -290,7 +274,7 @@ public abstract class Character extends CollisionEntity implements Renderable
         }
         canvas.drawRect(display, defaultPaint);
 
-        // Attacks.
+        // Render attacks.
         for (Attack attack : getAttacks())
         {
             if (attack != null)

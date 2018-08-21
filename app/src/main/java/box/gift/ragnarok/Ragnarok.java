@@ -24,15 +24,17 @@ import box.gift.ragnarok.constant.LevelSources;
 import box.gift.ragnarok.constant.StunDuration;
 import box.gift.ragnarok.constant.tilemap.CustomProperty;
 import box.gift.ragnarok.constant.tilemap.LayerConstant;
+import box.gift.ragnarok.entity.enemy.Bee;
 import box.gift.ragnarok.entity.enemy.Boss;
 import box.gift.ragnarok.entity.enemy.Charger;
 import box.gift.ragnarok.entity.enemy.Drunkard;
 import box.gift.ragnarok.entity.enemy.Enemy;
 import box.gift.ragnarok.entity.enemy.Rat;
-import box.gift.ragnarok.hitbox.Hitbox;
+import box.gift.ragnarok.combat.hitbox.Hitbox;
 import box.gift.ragnarok.interact.Conveyor;
 import box.gift.ragnarok.interact.Ice;
-import box.shoe.gameutils.AABB;
+import box.gift.ragnarok.interact.Shooter;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
 import box.gift.ragnarok.entity.enemy.Knight;
 import box.gift.ragnarok.entity.Character;
@@ -43,7 +45,7 @@ import box.gift.ragnarok.interact.InteractTile;
 import box.gift.ragnarok.interact.Poison;
 import box.gift.ragnarok.interact.Spike;
 import box.gift.ragnarok.interact.Spring;
-import box.gift.ragnarok.combat.weapon.Attack;
+import box.gift.ragnarok.combat.attack.Attack;
 import box.shoe.gameutils.CollectionUtils;
 import box.shoe.gameutils.Vector;
 import box.shoe.gameutils.camera.Camera;
@@ -107,7 +109,7 @@ public class Ragnarok implements Game
     public static final float SLOWZONE_PERCENT = 0.4f;
 
     private VectorTouchable moveControl;
-    private AABB moveControlBounds;
+    private BoundingBox moveControlBounds;
     private float joystickRadius;
 
     private List<InteractTile> interactTiles;
@@ -182,7 +184,6 @@ public class Ragnarok implements Game
         DisplayMetrics displayMetrics = applicationContext.getResources().getDisplayMetrics();
         float xDensity = displayMetrics.xdpi;
         float yDensity = displayMetrics.ydpi;
-        System.out.println("x,y: " + xDensity + " " + yDensity);
 
         screenWidth = newScreenWidth;
         screenHeight = newScreenHeight;
@@ -208,7 +209,7 @@ public class Ragnarok implements Game
         {
             joystickRadius = mainVisualBounds.height() / 4.8f;
             moveControlBounds
-                    = new AABB(0, 0, 2 * joystickRadius, 2 * joystickRadius);
+                    = new BoundingBox(0, 0, 2 * joystickRadius, 2 * joystickRadius);
             moveControlBounds.offsetLeftTo(mainVisualBounds.height() / 10);
             moveControlBounds.offsetBottomTo(9 * mainVisualBounds.height() / 10);
             moveControl = new Joystick(moveControlBounds);
@@ -217,7 +218,7 @@ public class Ragnarok implements Game
         {
             joystickRadius = mainVisualBounds.height() / 7.5f;//4.8f;
             moveControlBounds
-                    = new AABB(0, 0, screenWidth / 2, screenHeight);
+                    = new BoundingBox(0, 0, screenWidth / 2, screenHeight);
             moveControl = new JoystickZone(moveControlBounds, joystickRadius * 2, joystickRadius * 2);
         }
     }
@@ -236,7 +237,7 @@ public class Ragnarok implements Game
         {
             Character character = iterator.next();
             // A Character dies if its health drops to 0 or lower.
-            if (character.getHealth() <= 0)
+            if (character.getCurrentHealth() <= 0)
             {
                 character.cleanup();
                 iterator.remove();
@@ -259,16 +260,25 @@ public class Ragnarok implements Game
                 hitboxes.addAll(attack.getHitboxes());
             }
         }
+        for (InteractTile interactTile : interactTiles)
+        {
+            // Each InteractTile can have Attacks.
+            Collection<Attack> attacks = interactTile.getAttacks();
+            for (Attack attack : attacks)
+            {
+                // Each Attack can have Hitboxes.
+                hitboxes.addAll(attack.getHitboxes());
+            }
+        }
 
-        // Apply Hitboxes.
+        // Call Hitbox onCharacter(Character).
         for (Character character : characters)
         {
             for (Hitbox hitbox : hitboxes)
             {
-                // A Hitbox does not affect the Entity that created it.
-                if (!hitbox.isSource(character) && character.body.intersects(hitbox.body))
+                if (character.body.intersects(hitbox.body))
                 {
-                    hitbox.hit(character);
+                    hitbox.onCharacter(character);
                 }
             }
         }
@@ -303,9 +313,9 @@ public class Ragnarok implements Game
 
                     if (playerChar != null)
                     {
-                        if (playerChar.requestDamage(DamageConstant.ENEMY_BUMP))
+                        if (playerChar.requestDamage(DamageConstant.ENEMY_BUMP, Team.UNALIGNED))
                         {
-                            playerChar.applyForce(Direction.fromTheta(otherChar.vectorTo(playerChar).getTheta()).VECTOR.scale(ForceConstant.DAMAGE_DEFAULT));
+                            playerChar.applyForce(Direction.fromTheta(otherChar.vectorTo(playerChar).getTheta()).VECTOR.scale(ForceConstant.DAMAGE_KNOCKBACK_DEFAULT));
                             playerChar.addStatusEffectForDuration(StatusEffect.STUN, StunDuration.DAMAGE_TAKEN_DEFAULT);
                         }
                     }
@@ -332,8 +342,8 @@ public class Ragnarok implements Game
                     float touchOnRadiusX = (float) (Math.cos(moveVector.getTheta()) * joystickRadius);
                     float touchOnRadiusY = (float) (Math.sin(moveVector.getTheta()) * joystickRadius);
 
-                    float touchX = (float) (touchOnRadiusX * moveVector.getMagnitude());
-                    float touchY = (float) (touchOnRadiusY * moveVector.getMagnitude());
+                    float touchX = (touchOnRadiusX * moveVector.getMagnitude());
+                    float touchY = (touchOnRadiusY * moveVector.getMagnitude());
 
                     ((JoystickZone) moveControl).getCurrentJoystickBounds().offset(touchX - touchOnRadiusX, touchY - touchOnRadiusY);
                 }
@@ -373,8 +383,8 @@ public class Ragnarok implements Game
         for (Character character : characters)
         {
             // Friction = mu * mass.
-            float mu = ForceConstant.GLOBAL_FRICTION_COEFFICIENT * (1 / character.slip);
-            character.applyForce(character.velocity.scale(mu * character.mass));
+            float mu = ForceConstant.GLOBAL_FRICTION_COEFFICIENT * (1 / character.getSlip());
+            character.applyForce(character.velocity.scale(mu * character.getMass()));
         }
     }
 
@@ -416,7 +426,7 @@ public class Ragnarok implements Game
         canvas.drawBitmap(collisionBackground, 0, 0, tilePaint);
         canvas.drawBitmap(interactBackground, 0, 0, tilePaint);
 
-        //CollectionUtils.renderAll(interactTiles, resources, canvas);
+        CollectionUtils.renderAll(interactTiles, resources, canvas);
         CollectionUtils.renderAll(characters, resources, canvas);
 
         // Now we restore the canvas to unroll the camera.
@@ -429,25 +439,30 @@ public class Ragnarok implements Game
         // Joystick.
         if (moveControl.isActive() || useStaticJoystick)
         {
+            RectF bounds;
             if (useStaticJoystick)
             {
-                joystickPaint.setColor(Color.argb(24, 0, 0, 0));
-                canvas.drawCircle(moveControlBounds.centerX(), moveControlBounds.centerY(), joystickRadius, joystickPaint);
+                bounds = moveControlBounds;
             }
             else
             {
-                RectF joystickBounds = ((JoystickZone) moveControl).getCurrentJoystickBounds();
-                joystickPaint.setColor(Color.argb(24, 0, 0, 0));
-                // Bounds.
-                canvas.drawCircle(joystickBounds.centerX(), joystickBounds.centerY(), joystickRadius, joystickPaint);
-                // Slow zone.
-                joystickPaint.setColor(Color.YELLOW);
-                canvas.drawCircle(joystickBounds.centerX(), joystickBounds.centerY(), joystickRadius * SLOWZONE_PERCENT, joystickPaint);
-                // Dead zone.
-                joystickPaint.setColor(Color.RED);
-                canvas.drawCircle(joystickBounds.centerX(), joystickBounds.centerY(), joystickRadius * DEADZONE_PERCENT, joystickPaint);
-                // Thumb. //TODO: touch vector should be interpolated to slightly reduce jitter.
-                joystickPaint.setColor(Color.argb(20, 0, 0, 0));
+                bounds = ((JoystickZone) moveControl).getCurrentJoystickBounds();
+            }
+            // Bounds.
+            joystickPaint.setColor(Color.argb(30, 0, 0, 0));
+            canvas.drawCircle(bounds.centerX(), bounds.centerY(), joystickRadius, joystickPaint);
+            /*
+            // Slow zone.
+            joystickPaint.setColor(Color.YELLOW);
+            canvas.drawCircle(bounds.centerX(), bounds.centerY(), joystickRadius * SLOWZONE_PERCENT, joystickPaint);
+            // Dead zone.
+            joystickPaint.setColor(Color.RED);
+            canvas.drawCircle(bounds.centerX(), bounds.centerY(), joystickRadius * DEADZONE_PERCENT, joystickPaint);
+            */
+            // Thumb. //TODO: touch vector should be interpolated to slightly reduce jitter.
+            joystickPaint.setColor(Color.argb(30, 0, 0, 0));
+            if (moveControl.isActive())
+            {
                 Vector touchVector = moveControl.getActiveTouchVector();
                 if (touchVector.getMagnitude() > 1)
                 {
@@ -455,19 +470,19 @@ public class Ragnarok implements Game
                 }
                 float inputOffsetX = joystickRadius * touchVector.getX();
                 float inputOffsetY = joystickRadius * touchVector.getY();
-                float thumbCenterX = joystickBounds.centerX() + inputOffsetX;
-                float thumbCenterY = joystickBounds.centerY() + inputOffsetY;
+                float thumbCenterX = bounds.centerX() + inputOffsetX;
+                float thumbCenterY = bounds.centerY() + inputOffsetY;
                 canvas.drawCircle(thumbCenterX, thumbCenterY, 163, joystickPaint);
                 // Connector.
                 joystickPaint.setStrokeWidth(20); //TODO: if permanent, should be based on screen size.
-                canvas.drawLine(joystickBounds.centerX(), joystickBounds.centerY(), thumbCenterX, thumbCenterY, joystickPaint);
+                canvas.drawLine(bounds.centerX(), bounds.centerY(), thumbCenterX, thumbCenterY, joystickPaint);
             }
         }
 
         // Health. Just a number, todo: temporary
         Paint temp = new Paint(Paint.ANTI_ALIAS_FLAG);
         temp.setTextSize(80);
-        canvas.drawText(String.valueOf(player.getHealth()), 50, 100, temp);
+        canvas.drawText(String.valueOf(player.getCurrentHealth()), 50, 100, temp);
 
         /*
         // Bars.
@@ -506,7 +521,7 @@ public class Ragnarok implements Game
             for (int j = 0; j < tileMap.TILES_PER_COLUMN; j++)
             {
                 byte gid = interactTileRelativeGidGrid[i][j];
-                AABB tileBounds = new AABB(i * tileMap.TILE_WIDTH_PX, j * tileMap.TILE_HEIGHT_PX,
+                BoundingBox tileBounds = new BoundingBox(i * tileMap.TILE_WIDTH_PX, j * tileMap.TILE_HEIGHT_PX,
                         (i + 1) * tileMap.TILE_WIDTH_PX, (j + 1) * tileMap.TILE_HEIGHT_PX);
                 switch (gid)
                 {
@@ -521,6 +536,10 @@ public class Ragnarok implements Game
 
                     case 2:
                         interactTiles.add(new Goo(tileBounds));
+                        break;
+
+                    case 3:
+                        interactTiles.add(new Shooter(tileBounds));
                         break;
 
                     case 4:
@@ -571,7 +590,7 @@ public class Ragnarok implements Game
                         try
                         {
                             currentEnemy = new Knight(tileCenterX, tileCenterY, applicationContext.getAssets());
-                        } catch (IOException e)
+                        }catch (IOException e)
                         {
                             e.printStackTrace();
                         }
@@ -612,6 +631,15 @@ public class Ragnarok implements Game
                             e.printStackTrace();
                         }
                         break;
+                    case 5:
+                        try
+                        {
+                            currentEnemy = new Bee(tileCenterX, tileCenterY, applicationContext.getAssets());
+                        } catch (IOException e)
+                        {
+                            e.printStackTrace();
+                        }
+                        break;
                 }
                 if (currentEnemy == null)
                 {
@@ -625,7 +653,7 @@ public class Ragnarok implements Game
             }
         }
 
-        // Make the target player camera with outer bounds so it can't go past the map edge.
+        // Make the target player camera with outer bounds so it can't on past the map edge.
         if (tileMap.hasProperty(CustomProperty.TILE_MAP_IS_DUNGEON))
         {
             camera = new SectionCamera(player, desiredFocusGamePortionWidth, desiredFocusGamePortionHeight, mainVisualBounds);

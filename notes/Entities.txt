@@ -1,0 +1,9 @@
+Entity
+\
+-Hitbox
+-InteractTile
+-CollisionEntity
+ \
+--Character
+  \
+---Enemy

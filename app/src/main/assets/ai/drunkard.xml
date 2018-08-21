@@ -1,18 +1,18 @@
 <AI>
     <behavior starting="true"
               name="Idle"
-              class="box.gift.ragnarok.myai.behavior.Idle" />
+              class="box.gift.ragnarok.ai.behavior.Idle" />
     <behavior
         name="Drunk"
-        class="box.gift.ragnarok.myai.behavior.Drunk" />
+        class="box.gift.ragnarok.ai.behavior.Drunk" />
 
     <condition
         name="WaitMedium"
-        class="box.gift.ragnarok.myai.condition.WaitMedium" />
+        class="box.gift.ragnarok.ai.condition.WaitMedium" />
 
     <condition
         name="WaitVeryLong"
-        class="box.gift.ragnarok.myai.condition.WaitVeryLong" />
+        class="box.gift.ragnarok.ai.condition.WaitVeryLong" />
 
     <clause>
         <premise behavior="Idle" />

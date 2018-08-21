@@ -1,48 +1,26 @@
 package box.gift.ragnarok.combat.weapon;
 
 import box.gift.ragnarok.StatusEffect;
+import box.gift.ragnarok.Team;
 import box.gift.ragnarok.constant.DamageConstant;
-import box.gift.ragnarok.hitbox.Hitbox;
-import box.shoe.gameutils.AABB;
 import box.shoe.gameutils.Direction;
 import box.gift.ragnarok.entity.Character;
-import box.gift.ragnarok.entity.Player;
-import box.shoe.gameutils.Vector;
 
-public class Sword extends Weapon
+public class Sword extends MeleeWeapon
 {
-    public static final int ATTACK_UPDATES = 8;
+    private static final int ATTACK_UPDATES = 4;
 
     public Sword()
     {
-        super(12);
+        super(12, 24);
     }
 
     @Override
-    protected void attack(Character source, Direction direction)
+    protected void attack(Character sourceCharacter, Direction direction)
     {
-        final Attack attack = new Attack();
-        float hitboxWidth;
-        float hitboxHeight;
-        if (direction == Direction.EAST || direction == Direction.WEST)
-        {
-            hitboxWidth = Player.WIDTH * 1.2f;
-            hitboxHeight = Player.HEIGHT * 2.1f;
-        }
-        else
-        {
-            hitboxWidth = Player.WIDTH * 2.1f;
-            hitboxHeight = Player.HEIGHT * 1.2f;
-        }
-        Hitbox damageBox = new Hitbox(new AABB(0, 0, hitboxWidth, hitboxHeight), source, DamageConstant.SWORD, ATTACK_UPDATES);
-        damageBox.body.offsetCenterTo(source.body.centerX(), source.body.centerY());
+        addAttack(createArcingAttack(sourceCharacter, direction, DamageConstant.SWORD, ATTACK_UPDATES));
 
-        Vector directionVector = direction.VECTOR.scale(Player.WIDTH);
-        damageBox.body.offset(directionVector.getX(), directionVector.getY());
-        attack.addHitbox(damageBox);
-
-        addAttack(attack);
-
-        source.addStatusEffectForDuration(StatusEffect.STUN, ATTACK_UPDATES);
+        //todo: how to add stun to source?
+        //source.addStatusEffectForDuration(StatusEffect.STUN, ATTACK_UPDATES);
     }
 }

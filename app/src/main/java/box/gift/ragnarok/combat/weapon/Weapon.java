@@ -1,11 +1,16 @@
 package box.gift.ragnarok.combat.weapon;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RestrictTo;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import box.gift.ragnarok.Team;
+import box.gift.ragnarok.combat.attack.Attack;
 import box.gift.ragnarok.entity.Character;
 import box.shoe.gameutils.CountDownScheduler;
 import box.shoe.gameutils.Direction;
@@ -28,12 +33,13 @@ public abstract class Weapon implements Updatable
         COOLDOWN_UPDATES = cooldown;
     }
 
-    public final boolean requestAttack(Character source, Direction direction)
+    public final boolean requestAttack(@NonNull Character sourceCharacter, Direction direction)
     {
         if (state.inState("IDLE"))
         {
-            attack(source, direction);
-            // Only go into cooldown if there is any amount of updates to wait.
+            sourceCharacter.face(direction);
+            attack(sourceCharacter, direction);
+            // Only on into cooldown if there is any amount of updates to wait.
             if (COOLDOWN_UPDATES > 0)
             {
                 state.enterState("COOLDOWN");
@@ -56,7 +62,7 @@ public abstract class Weapon implements Updatable
     }
 
     @RestrictTo(RestrictTo.Scope.SUBCLASSES)
-    protected abstract void attack(Character source, Direction direction);
+    protected abstract void attack(Character sourceCharacter, Direction direction);
 
     @RestrictTo(RestrictTo.Scope.SUBCLASSES)
     protected void addAttack(Attack attack)
@@ -70,10 +76,12 @@ public abstract class Weapon implements Updatable
         attacks.remove(attack);
     }
 
-    public List<Attack> getAttacks()
+    public Collection<Attack> getAttacks()
     {
         return attacks;
     }
+
+    public abstract float getComfortableAttackDistance();
 
     @Override
     public void update()

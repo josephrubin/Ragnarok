@@ -1,17 +1,17 @@
 <AI>
     <behavior starting="true"
               name="Chase"
-              class="box.gift.ragnarok.myai.behavior.Chase" />
+              class="box.gift.ragnarok.ai.behavior.Chase" />
     <behavior
         name="Run"
-        class="box.gift.ragnarok.myai.behavior.Run" />
+        class="box.gift.ragnarok.ai.behavior.Run" />
 
     <condition
         name="Close"
-        class="box.gift.ragnarok.myai.condition.Close" />
+        class="box.gift.ragnarok.ai.condition.Close" />
     <condition
         name="Time"
-        class="box.gift.ragnarok.myai.condition.WaitLong" />
+        class="box.gift.ragnarok.ai.condition.WaitLong" />
 
     <clause>
         <premise behavior="Chase" />

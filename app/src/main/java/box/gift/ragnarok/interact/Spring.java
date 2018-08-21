@@ -2,11 +2,10 @@ package box.gift.ragnarok.interact;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.RectF;
 
 import box.gift.ragnarok.constant.ForceConstant;
 import box.gift.ragnarok.entity.Character;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Vector;
 
 /**
@@ -17,7 +16,7 @@ public class Spring extends InteractTile
 {
     public static final float BOUNCE_AMOUNT = ForceConstant.SPRING;
 
-    public Spring(AABB body)
+    public Spring(BoundingBox body)
     {
         super(body);
     }

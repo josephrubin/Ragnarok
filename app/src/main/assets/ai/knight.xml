@@ -2,37 +2,39 @@
     <!-- Behavior definitions - it is recommended to define them all in one place. -->
     <behavior starting="true"
         name="Chase"
-        class="box.gift.ragnarok.myai.behavior.Chase" />
+        class="box.gift.ragnarok.ai.behavior.Chase" />
     <behavior
         name="Idle"
-        class="box.gift.ragnarok.myai.behavior.Idle" />
+        class="box.gift.ragnarok.ai.behavior.Idle" />
     <behavior
-        name="Charge"
-        class="box.gift.ragnarok.myai.behavior.Charge" />
+        name="AttackOffense"
+        class="box.gift.ragnarok.ai.behavior.AttackOffense" />
 
     <condition
         name="WaitShort"
-        class="box.gift.ragnarok.myai.condition.WaitShort" />
-
+        class="box.gift.ragnarok.ai.condition.WaitShort" />
     <condition
-        name="Close"
-        class="box.gift.ragnarok.myai.condition.Close" />
+        name="WithinAttackDistance"
+        class="box.gift.ragnarok.ai.condition.WithinAttackDistance" />
+    <condition
+        name="Immediate"
+        class="box.gift.ragnarok.ai.condition.Immediate" />
 
 
     <clause>
         <premise behavior="Chase" />
-        <predicate condition="Close" result="swap">
+        <predicate condition="WithinAttackDistance" result="swap">
+            <outcome behavior="AttackOffense" />
+        </predicate>
+    </clause>
+    <clause>
+        <premise behavior="AttackOffense" />
+        <predicate condition="Immediate" result="swap">
             <outcome behavior="Idle" />
         </predicate>
     </clause>
     <clause>
         <premise behavior="Idle" />
-        <predicate condition="WaitShort" result="swap">
-            <outcome behavior="Charge" />
-        </predicate>
-    </clause>
-    <clause>
-        <premise behavior="Charge" />
         <predicate condition="WaitShort" result="swap">
             <outcome behavior="Chase" />
         </predicate>

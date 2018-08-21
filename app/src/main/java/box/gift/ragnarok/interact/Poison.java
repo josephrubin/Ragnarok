@@ -2,11 +2,10 @@ package box.gift.ragnarok.interact;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.RectF;
 
 import box.gift.ragnarok.Afflictable;
 import box.gift.ragnarok.entity.Character;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 
 /**
  * Created by Joseph on 3/23/2018.
@@ -14,7 +13,7 @@ import box.shoe.gameutils.AABB;
 
 public class Poison extends InteractTile
 {
-    public Poison(AABB body)
+    public Poison(BoundingBox body)
     {
         super(body);
     }

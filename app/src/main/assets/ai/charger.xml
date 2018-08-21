@@ -1,21 +1,21 @@
 <AI>
     <behavior starting="true"
               name="Circle"
-              class="box.gift.ragnarok.myai.behavior.Circle" />
+              class="box.gift.ragnarok.ai.behavior.Circle" />
     <behavior
         name="Idle"
-        class="box.gift.ragnarok.myai.behavior.Idle" />
+        class="box.gift.ragnarok.ai.behavior.Idle" />
     <behavior
         name="Charge"
-        class="box.gift.ragnarok.myai.behavior.Charge" />
+        class="box.gift.ragnarok.ai.behavior.Charge" />
 
     <condition
         name="WaitMedium"
-        class="box.gift.ragnarok.myai.condition.WaitMedium" />
+        class="box.gift.ragnarok.ai.condition.WaitMedium" />
 
     <condition
         name="WaitShort"
-        class="box.gift.ragnarok.myai.condition.WaitShort" />
+        class="box.gift.ragnarok.ai.condition.WaitShort" />
 
     <clause>
         <premise behavior="Circle" />

@@ -5,14 +5,14 @@ import android.graphics.Canvas;
 
 import box.gift.ragnarok.constant.ForceConstant;
 import box.gift.ragnarok.entity.Character;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
 
 public class Conveyor extends InteractTile
 {
     private Direction direction;
 
-    public Conveyor(AABB body, Direction direction)
+    public Conveyor(BoundingBox body, Direction direction)
     {
         super(body);
         this.direction = direction;

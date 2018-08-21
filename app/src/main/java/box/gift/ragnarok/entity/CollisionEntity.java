@@ -2,108 +2,50 @@ package box.gift.ragnarok.entity;
 
 import android.annotation.SuppressLint;
 import android.graphics.RectF;
-import android.support.annotation.CallSuper;
 import android.support.annotation.RestrictTo;
 import android.util.SparseArray;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
 
 import box.gift.ragnarok.Ragnarok;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Axis;
-import box.shoe.gameutils.Entity;
 import box.shoe.gameutils.Vector;
 import box.shoe.gameutils.map.TileMapLoader;
 
 /**
  * Created by Joseph on 3/16/2018.
  */
-//todo: separate forces and phys properties into PhysicsEntity, and perhaps collisions stay here. Make physics package in gameutils
-public class CollisionEntity extends Entity
-{
-    private static AABB tileBounds = new AABB();
 
+public abstract class CollisionEntity extends PhysicsEntity
+{
+    private static BoundingBox tileBounds = new BoundingBox();
+
+    //todo: these should not stay here if at all possible.
     public static SparseArray<RectF> collisionRectangles;
     public static int TILE_WIDTH_PX;
     public static int TILE_HEIGHT_PX;
 
-    private List<Vector> forces; //todo: any reason to have Force class which contains a vector, and maybe a source (or Ambient if no source)?
-    private Set<Object> forceKeys;
-
-    public float mass;
-    public float slip;
-
     // To prevent very fast CollisionEntities from clipping through others, we divide movement into a number of steps.
     // On each step, the CollisionEntity is moved by a portion of its velocity, and collision is calculated.
     // The higher the number, the less likely that clipping happens, but the slower collision code runs.
+    // For your game, you should run tests and decide on a  number empirically (for games with fast-moving
+    // Entities or thin walls you will likely want a higher value.)
     private static int NUMBER_OF_MOVEMENT_STEPS = 6;
 
-    public CollisionEntity(AABB body)
+    public CollisionEntity(BoundingBox body)
     {
         this(body, Vector.ZERO, Vector.ZERO);
     }
 
-    public CollisionEntity(AABB body, Vector initialVelocity)
+    public CollisionEntity(BoundingBox body, Vector initialVelocity)
     {
         this(body, initialVelocity, Vector.ZERO);
     }
 
-    public CollisionEntity(AABB body, Vector initialVelocity, Vector initialAcceleration)
+    public CollisionEntity(BoundingBox body, Vector initialVelocity, Vector initialAcceleration)
     {
         super(body, initialVelocity, initialAcceleration);
-        forces = new ArrayList<>();
-        forceKeys = new HashSet<>();
-        mass = 1;
-        slip = 1;
-    }
-
-    public void applyForce(Vector force)
-    {
-        forces.add(force);
-    }
-
-    public void applyUniqueForce(Vector force, Object key)
-    {
-        if (!forceKeys.contains(key))
-        {
-            forces.add(force);
-            forceKeys.add(key);
-        }
-    }
-
-    public void clearForces()
-    {
-        forces.clear();
-        forceKeys.clear();
-    }
-
-    @Override
-    public void update()
-    {
-        updateAcceleration();
-        super.update();
-    }
-
-    @RestrictTo(RestrictTo.Scope.SUBCLASSES)
-    @CallSuper
-    protected void updateAcceleration()
-    {
-        // We recalculate the acceleration each update based on the forces.
-        acceleration = Vector.ZERO;
-        for (Vector force : forces)
-        {
-            acceleration = acceleration.add(force);
-        }
-
-        // As per the formula: acceleration = force / mass.
-        acceleration = acceleration.scale(1 / mass);
-
-        // Forces must be reapplied each update.
-        clearForces();
     }
 
     @SuppressLint("MissingSuperCall")
@@ -164,9 +106,9 @@ public class CollisionEntity extends Entity
             }
 
             // Check for collision with other Characters.
-            //TODO: should they push each other?
             for (Character character : Ragnarok.stage.CHARACTERS)
             {
+                // Do not collide with ourselves.
                 if (this == character)
                 {
                     continue;
@@ -175,7 +117,24 @@ public class CollisionEntity extends Entity
                 if (body.intersects(character.body))
                 {
                     collided = true;
+
+                    // To calculate finalVelocity later we will need the current velocity.
+                    // It will be changed after the collision resolution so we save a copy now.
+                    Vector v1 = velocity;
+                    Vector v2 = character.velocity;
                     resolveCollisionWith(character.body, axis);
+
+                    float m1 = getMass();
+                    float m2 = character.getMass();
+                    Vector momentum1 = v1.scale(m1);
+                    Vector momentum2 = v2.scale(m2);
+                    float massSum = m1 + m2;
+
+                    // As per the sticky collision formula which conserves momentum:
+                    // m1*v1 + m2*v2 = (m1 + m2)*vf
+                    Vector finalVelocity = momentum1.add(momentum2).scale(1 / massSum);
+                    velocity = finalVelocity;
+                    character.velocity = finalVelocity;
                 }
             }
         }
@@ -221,7 +180,7 @@ public class CollisionEntity extends Entity
 
     private static void setTileBounds(int type, int row, int column)
     {
-        tileBounds = new AABB(collisionRectangles.get(type));
+        tileBounds = new BoundingBox(collisionRectangles.get(type));
         tileBounds.offset(row * TILE_WIDTH_PX, column * TILE_HEIGHT_PX);
     }
 

@@ -1,0 +1,17 @@
+<AI>
+    <behavior starting="true"
+              name="Beeline"
+              class="box.gift.ragnarok.ai.behavior.Beeline" />
+
+    <condition
+        name="WaitShort"
+        class="box.gift.ragnarok.ai.condition.WaitShort" />
+
+
+    <clause>
+        <premise behavior="Beeline" />
+        <predicate condition="WaitShort" result="swap">
+            <outcome behavior="Beeline" />
+        </predicate>
+    </clause>
+</AI>

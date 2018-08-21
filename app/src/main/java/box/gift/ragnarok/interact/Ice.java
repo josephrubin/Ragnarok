@@ -2,15 +2,14 @@ package box.gift.ragnarok.interact;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.RectF;
 
 import box.gift.ragnarok.StatusEffect;
 import box.gift.ragnarok.entity.Character;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 
 public class Ice extends InteractTile
 {
-    public Ice(AABB body)
+    public Ice(BoundingBox body)
     {
         super(body);
     }

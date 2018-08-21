@@ -1,0 +1,5 @@
+package box.gift.ragnarok.constant;
+
+public class MaxHealthConstant
+{
+}

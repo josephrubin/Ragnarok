@@ -1,8 +1,9 @@
 package box.gift.ragnarok.entity.enemy;
 
-import box.gift.ragnarok.myai.EnemyAI;
+import box.gift.ragnarok.Team;
+import box.gift.ragnarok.ai.EnemyAI;
 import box.gift.ragnarok.entity.Character;
-import box.shoe.gameutils.AABB;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Renderable;
 
 /**
@@ -23,9 +24,9 @@ public abstract class Enemy extends Character implements Renderable
     //private Weapon primaryWeapon;
     //private Weapon secondaryWeapon;
 
-    public Enemy(AABB body, EnemyAI intelligence)
+    public Enemy(BoundingBox body, EnemyAI intelligence)
     {
-        super(body);
+        super(body, Team.AssignableTeam.HOSTILE);
         spawned = false;
         this.intelligence = intelligence;
         intelligence.controlEnemy(this);

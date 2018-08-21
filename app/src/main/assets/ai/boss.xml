@@ -2,29 +2,29 @@
     <!-- Behavior definitions - it is recommended to define them all in one place. -->
     <behavior starting="true"
               name="Chase"
-              class="box.gift.ragnarok.myai.behavior.Chase" />
+              class="box.gift.ragnarok.ai.behavior.Chase" />
     <behavior
         name="AttackOffense"
-        class="box.gift.ragnarok.myai.behavior.AttackOffense" />
+        class="box.gift.ragnarok.ai.behavior.AttackOffense" />
     <behavior
         name="Idle"
-        class="box.gift.ragnarok.myai.behavior.Idle" />
+        class="box.gift.ragnarok.ai.behavior.Idle" />
     <behavior
         name="Circle"
-        class="box.gift.ragnarok.myai.behavior.Circle" />
+        class="box.gift.ragnarok.ai.behavior.Circle" />
 
     <condition
         name="WaitShort"
-        class="box.gift.ragnarok.myai.condition.WaitShort" />
+        class="box.gift.ragnarok.ai.condition.WaitShort" />
     <condition
         name="WaitVeryShort"
-        class="box.gift.ragnarok.myai.condition.WaitVeryShort" />
+        class="box.gift.ragnarok.ai.condition.WaitVeryShort" />
     <condition
         name="Immediate"
-        class="box.gift.ragnarok.myai.condition.Immediate" />
+        class="box.gift.ragnarok.ai.condition.Immediate" />
     <condition
         name="Close"
-        class="box.gift.ragnarok.myai.condition.Close" />
+        class="box.gift.ragnarok.ai.condition.Close" />
 
 
     <clause>

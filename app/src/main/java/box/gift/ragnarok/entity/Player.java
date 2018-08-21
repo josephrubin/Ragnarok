@@ -6,10 +6,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 
 import box.gift.ragnarok.StatusEffect;
-import box.shoe.gameutils.AABB;
+import box.gift.ragnarok.Team;
+import box.gift.ragnarok.combat.weapon.Homer;
+import box.gift.ragnarok.combat.weapon.Sword;
+import box.shoe.gameutils.BoundingBox;
 import box.shoe.gameutils.Direction;
 import box.gift.ragnarok.Ragnarok;
-import box.gift.ragnarok.combat.weapon.Sword;
 import box.shoe.gameutils.Renderable;
 import box.shoe.gameutils.Vector;
 
@@ -28,7 +30,7 @@ public class Player extends Character implements Renderable
 
     public Player(float x, float y)
     {
-        super(new AABB(x, y, WIDTH, HEIGHT));
+        super(new BoundingBox(x, y, WIDTH, HEIGHT), Team.AssignableTeam.FRIENDLY);
         this.health = 12;
         wieldOffense(new Sword());
 

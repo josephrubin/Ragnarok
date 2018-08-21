@@ -24,7 +24,7 @@ public interface Afflictable
         public boolean applyTo(Character character)
         {
             // Deal damage, and freeze for just a bit if damage was taken.
-            if (character.requestDamage(DamageConstant.POISON))
+            if (character.requestDamage(DamageConstant.POISON, Team.UNALIGNED))
             {
                 character.addStatusEffectForDuration(StatusEffect.STUN, StunDuration.DAMAGE_TAKEN_DEFAULT);
             }
